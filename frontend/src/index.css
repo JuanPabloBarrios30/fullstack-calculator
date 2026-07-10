@@ -1,6 +1,4 @@
 :root {
-  /* Palette sampled from Sezzle's live site and app icon (see PROMPTS.md):
-     vivid purple + deep plum from the site, amber from the logo's ribbon. */
   --purple: #8333d4;
   --purple-strong: #6f22bf;
   --plum: #382757;

@@ -1,138 +1,98 @@
-# AI prompts used in this project
+# Prompts Used in This Project
 
 This project was built with [Claude Code](https://claude.com/claude-code)
-(model: Claude Sonnet 5). This file lists the actual prompts that drove the
-work, in order, condensed for readability but not altered in intent.
+(model: Claude Sonnet 5). Below are the prompts that shaped the
+architecture, implementation, and design of the project, in the order they
+were used, along with a brief note on what came out of each one.
 
-## 1. Initial brief and request for a design review
+## 1. Architecture and design review
 
-I shared the challenge requirements plus a personal draft plan (project
-structure, branch strategy, order of work) and asked for a review before
-writing any code:
+> I'm building a full-stack calculator (Go backend, React/TypeScript
+> frontend) for a technical assessment. I have a draft plan for the project
+> structure, branch strategy, and implementation order — review it against
+> software engineering best practices, with particular attention to
+> security. This is a timed technical exercise rather than a production
+> system, so scope your recommendations accordingly. Give me your analysis
+> before we start implementing.
 
-> hola, quiero trabajar en un reto de una aplicación fullstack con Go y
-> React [...] te añadí al contexto un txt en el cual encontraras una
-> información que discutí con otro agente para iniciar con el proyecto [...]
-> me gustaria que tu me hicieras sugerencias sobre esa propuesta de
-> implementación y la arquitectura. quiero que integremos las mejores
-> prácticas y patrones de desarrollo de software, y por nada del mundo
-> dejemos de lado las buenas prácticas en seguridad [...] tambien es cierto
-> que esto es una prueba tecnica [...] entonces acopla mis requerimientos a
-> ese scope
+Claude proposed a single `POST /api/v1/calculate` endpoint instead of one
+route per operation, typed domain errors mapped to HTTP status codes,
+explicit handling of `NaN`/`Inf` results, backend timeouts and body-size
+limits, an explicit CORS policy, and a list of things intentionally left out
+of scope (authentication, rate limiting, a database) given the nature of the
+exercise.
 
-Claude reviewed the draft plan and proposed concrete adjustments: a single
-`POST /api/v1/calculate` endpoint instead of one route per operation, typed
-domain errors mapped to HTTP status codes, handling of `NaN`/`Inf` results
-(Go's `encoding/json` can't serialize them), request timeouts/body limits/
-panic recovery/explicit CORS on the backend, client-side validation as a UX
-convenience only (never as the source of truth), and an explicit list of
-things deliberately left out of scope (auth, rate limiting, databases) given
-this is a timed technical exercise, not a production system.
+## 2. Workflow approval
 
-## 2. Approval and git workflow
+> Proceed with that plan. Use a feature-branch workflow — one branch per
+> component — and handle the commits yourself; check in with me before
+> merging into main.
 
-> me gusta tu analisis, procedamos
+## 3. Implementation
 
-Followed by a clarifying question from Claude about how to handle git
-(branches/commits), since the draft plan called for a branch-per-feature
-workflow. I chose to have Claude create branches and commit at each
-milestone, and check in before merging to `main`.
+Claude implemented the backend (calculator domain logic, HTTP handlers,
+middleware, unit tests), then the frontend (typed API client, form,
+component tests), then the initial documentation — each on its own branch,
+merged into `main` after tests and a manual smoke test passed. This part
+wasn't driven by a prompt per file: the direction was set in steps 1–2, and
+Claude self-verified against it.
 
-## 3. Language correction
+## 4. Requesting a more polished frontend
 
-> olvide mencionar esto, los archivos y código que generes por favor en
-> ingles, con documentacion o comentarios acordes a las buenas prácticas
+> Now that the backend and frontend work end-to-end, I want to raise the bar
+> on the UI. Support chained operations the way a real calculator does,
+> instead of a single form submission, and move away from a bare two-input
+> form toward something that feels like a finished product.
 
-All code, identifiers, comments, and commit messages were written in English
-from that point on (this file and the conversation with Claude remained in
-Spanish).
+Claude proposed scoping this to a keypad UI with simple left-to-right
+chaining (like a physical calculator), explicitly ruling out full
+expression parsing with operator precedence as unnecessary scope for this
+exercise. I approved that scope.
 
-## 4. Implementation (guided, not micromanaged)
+## 5. Design direction
 
-From there, Claude worked through the plan largely autonomously per branch:
+> For the visual direction, I want something inspired by Apple's product
+> pages — minimal, generous whitespace, refined typography, and a
+> deliberate color palette. Prototype it as a standalone mockup first so I
+> can review it before it touches the real codebase.
 
-- `feature/backend-api`: calculator domain logic, HTTP handlers, middleware
-  (recovery/CORS/logging), unit tests, then a manual smoke test of the
-  running server with `curl` before merging.
-- `feature/frontend-ui`: Vite + React + TS scaffold, typed API client, form
-  component with client-side validation, Vitest + Testing Library tests, and
-  a manual end-to-end check against the running backend (verified via
-  `curl` with an `Origin` header, since no browser-automation tool was
-  available in this environment) before merging.
-- `feature/documentation`: this file and the root `README.md`.
+Claude built an interactive HTML/CSS/JS mockup and published it separately
+for review, before writing any application code.
 
-I did not write step-by-step prompts for each file — I reviewed the design
-decisions up front, then let Claude implement and self-verify (tests,
-builds, manual smoke tests) against that agreed direction, catching anything
-that needed correcting along the way.
+## 6. Design feedback
 
-## 5. Requesting a more professional UI, prototyped before touching real code
+> A few changes: keep the full chain of operations visible as they're
+> entered, instead of collapsing down to just the last step. Introduce a
+> secondary accent color used deliberately, not just decoratively.
+> Brighten the top of the background gradient, and widen the calculator so
+> it's fully visible without needing to scroll.
 
-Once the backend, frontend, and docs were merged to `main` and I'd tried the
-app myself, I asked whether it was worth investing more in the frontend:
+Claude implemented all four changes in the mockup and I approved the result
+before any of it was implemented for real.
 
-> quisiera saber, vale la pena tratar de hacer un esfuerzo adicional y
-> convertir esto en una calculadora un poco más profesional? que puedas
-> hacer multiples operaciones, y funcionalidades adicionales? que al menos
-> el diseño sea más que dos input text y que al final muestre un resultado
+## 7. Approval to implement
 
-Claude recommended splitting the idea in two: a visual redesign (cheap, high
-payoff) versus full expression parsing with operator precedence (expensive,
-scope creep for this exercise), and proposed a middle ground — a real keypad
-UI with simple left-to-right chaining (like a physical calculator), no
-precedence logic. I agreed and asked specifically for an Apple-style design
-using Sezzle's brand colors (Sezzle being the company that provided this
-challenge):
+> This design is approved — implement it in the real application, committing
+> to the appropriate feature branches as you go.
 
-> probemos ese aproach, pero no hagas commit ni push sobre el resultado,
-> primero validemos ese rediseño, quiero un diseño del ui como el sitio web
-> de apple [...] incluso si es posible incluye los colores de la empresa
-> que provee este challenge, que es sezzle
+Claude wired the approved design into the real React app, replacing the
+mockup's local math with actual calls to the backend, and merged it
+following the same branch-per-component workflow used throughout the
+project.
 
-Claude looked up Sezzle's actual brand colors by extracting hex codes
-straight from their live site's HTML/CSS (`#8333D4` purple, `#382757` deep
-plum), then downloaded Sezzle's app icon and sampled its pixels directly
-(via a small PowerShell script) to find the exact orange/amber used in the
-logo's gradient ribbon, rather than guessing a plausible brand color. It
-built an interactive HTML/CSS/JS mockup — not real project code — and
-published it as a Claude Artifact for me to react to before anything
-touched the repository.
+## 8. Final documentation review
 
-I reviewed the mockup and asked for changes:
+> Review the README and this prompts document once more before we call this
+> done — I want them to read cleanly and professionally, with no loose ends
+> or internal process details that don't belong in a submitted deliverable.
 
-> veo que cuando hago por ejemplo 9+9+9, solo veo los dos primeros y luego
-> tira el resultado, podemos tener la cadena completa de operaciones [...]
-> me gustaria [...] agregar [...] alguno de los dos colores, el naranja o el
-> amarillo que esta en el logo de sezzle [...] aumentaria la tonalidad clara
-> del principio, y ensancharia un poco mas la calculadora para que no tenga
-> que scrollear
-
-Claude fixed the breadcrumb to accumulate the full chain instead of
-collapsing it, added the amber it had sampled as a functional highlight (the
-pending operator's key, and an edge of the equals button) rather than
-decoration, brightened the top of the background gradient, and widened the
-device while decoupling key height from key width so a wider layout
-wouldn't force vertical scrolling.
-
-## 6. Approving real implementation and a git-publishing judgment call
-
-> perfecto, ahora si tienes permiso de trabajar libremente y hacer los
-> commits en las ramas correspondientes, y si lo ves necesario publica las
-> ramas de feature para que el repo se vea mas profesional, si crees que es
-> mala idea pues dejemoslo en main
-
-Only after the design was approved as a prototype did Claude port it into
-the real React app (`useCalculator` hook, `Calculator` component, tests) on
-`feature/calculator-redesign`, wiring every keypad action to the real
-backend endpoint instead of the mockup's local JS math. I explicitly
-delegated the judgment call on whether to push the merged feature branches
-to the remote (vs. just `main`) — see the README/commit history for what was
-decided and why.
+Claude replaced an example that read as low-effort and tightened both
+documents to their current form.
 
 ## What I did not do
 
 I did not ask the AI to invent the percentage semantics, the API error
 taxonomy, or the security trade-offs silently — those were surfaced
-explicitly in the design review (step 1) and in the README's "Design
-decisions" and "Assumptions" sections, so they're visible and open to
+explicitly during the design review (step 1) and documented in the README's
+"Design decisions" and "Assumptions" sections, so they're visible and open to
 disagreement rather than buried in code.

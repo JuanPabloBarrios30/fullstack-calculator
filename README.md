@@ -5,6 +5,10 @@ arithmetic, and a React + TypeScript frontend that consumes it. The goal was
 clean separation of concerns, solid error handling, and tests that actually
 exercise the behavior — not extra features.
 
+<p align="center">
+  <img src="docs/screenshot.png" alt="Calculator UI showing a keypad with digits, operators, and a running result display" width="360">
+</p>
+
 ## Tech stack
 
 - **Backend:** Go (standard library only — `net/http`, no framework)
@@ -39,12 +43,13 @@ others require both `a` and `b`.
 
 The frontend is a calculator keypad (not a plain "two inputs and a button"
 form): digits and operators, a running expression breadcrumb, and chained
-operations — `9 + 9 + 9 =` accumulates and evaluates left to right, the way a
-physical calculator works. Every one of those steps is a real call to
+operations — e.g. `12 × 4 − 9 =` accumulates and evaluates left to right, the
+way a physical calculator works. Every one of those steps is a real call to
 `POST /api/v1/calculate`; nothing is computed client-side except formatting.
-The palette (deep purple/plum, with an amber accent on the pending operator
-and the equals button) samples Sezzle's own site and logo colors — see
-[PROMPTS.md](PROMPTS.md) for how those were sourced.
+The visual design favors generous whitespace, a soft gradient backdrop, and a
+deep purple/plum palette with a warm amber accent used functionally —
+highlighting the pending operator and tracing an edge on the equals button —
+rather than as pure decoration.
 
 ## Setup & running
 
@@ -194,10 +199,10 @@ healthchecks).
   limiting, HTTPS/TLS termination — this is a stateless calculator with no
   user data, so those would be scope creep for what's being evaluated here.
 
-- **Every calculator step is a real API call.** Chaining `9 + 9 + 9 =` fires
-  one `POST /api/v1/calculate` per completed step (each `+`, and the final
-  `=`), accumulating the running total returned by the backend — the frontend
-  never does the arithmetic itself. This keeps the backend as the actual
+- **Every calculator step is a real API call.** Chaining `12 × 4 − 9 =` fires
+  one `POST /api/v1/calculate` per completed step (each operator press, and
+  the final `=`), accumulating the running total returned by the backend —
+  the frontend never does the arithmetic itself. This keeps the backend as the actual
   source of truth rather than just the one used for a single initial
   computation, at the cost of a network round-trip per keystroke-equivalent
   (acceptable for a calculator; would need debouncing/batching in a
