@@ -24,6 +24,7 @@ fullstack-calculator/
     cmd/api/            entry point, server wiring (timeouts, middleware)
     internal/calculator/ pure arithmetic domain logic (no HTTP knowledge)
     internal/httpapi/    HTTP handlers, middleware, request/response DTOs
+    Dockerfile           multi-stage build -> non-root Alpine image
   frontend/
     src/
       types/            shared Operation type and API contracts
@@ -31,6 +32,8 @@ fullstack-calculator/
       hooks/             useCalculator — chained-calculation state machine
       components/        Calculator (keypad UI)
       App.tsx            renders the calculator
+    Dockerfile           multi-stage build -> non-root nginx image
+  docker-compose.yml    runs both services together
 ```
 
 ## Supported operations
@@ -57,6 +60,7 @@ rather than as pure decoration.
 
 - Go 1.22+ (developed against 1.26)
 - Node 20+ (developed against 24)
+- Docker + Docker Compose (optional — only needed for the Docker setup below)
 
 ### Backend
 
@@ -107,6 +111,32 @@ Build for production:
 
 ```bash
 npm run build
+```
+
+### Docker (optional)
+
+Runs both services together, each built as a small multi-stage image
+(compiled Go binary on Alpine; a Vite production build served by
+nginx), neither running as root:
+
+```bash
+docker compose up --build
+```
+
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:8080`
+
+The frontend image bakes in `VITE_API_BASE_URL=http://localhost:8080` at
+build time (see `docker-compose.yml`), since Vite inlines `VITE_*`
+variables into the bundle rather than reading them at runtime — so if you
+change the backend's published port, update that build arg too. Both
+containers define a `HEALTHCHECK`, and the frontend waits for the backend
+to report healthy before starting.
+
+Stop and remove both containers with:
+
+```bash
+docker compose down
 ```
 
 ## API usage
@@ -219,6 +249,14 @@ healthchecks).
   `encoding/json` cannot marshal `NaN`/`Inf`, so an extreme `power` call
   (e.g. `10 ^ 400`) is checked after computing and turned into a proper 422
   instead of a broken response body.
+
+- **Docker images run as non-root, with a small final layer.** The backend
+  is a multi-stage build — compiled in `golang:alpine`, copied into a plain
+  `alpine` runtime with its own unprivileged user (no shell utilities beyond
+  what the healthcheck needs). The frontend is built with Vite in a `node`
+  stage and served by `nginxinc/nginx-unprivileged`, which never runs as
+  root at all rather than dropping privileges after start. Neither image
+  ships build tooling or source maps of the toolchain.
 
 ## Assumptions
 

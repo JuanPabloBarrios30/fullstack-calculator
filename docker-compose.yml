@@ -1,0 +1,21 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      ALLOWED_ORIGIN: "http://localhost:3000"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Baked into the frontend bundle at build time, so it must match the
+        # host-facing port backend publishes below.
+        VITE_API_BASE_URL: "http://localhost:8080"
+    ports:
+      - "3000:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
