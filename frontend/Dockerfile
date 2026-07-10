@@ -14,12 +14,22 @@ ARG VITE_API_BASE_URL=http://localhost:8080
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 RUN npm run build
 
-# nginx-unprivileged runs entirely as a non-root user and listens on 8080
-# instead of 80, so it doesn't need any extra capabilities.
-FROM nginxinc/nginx-unprivileged:1.27-alpine
-COPY --from=builder /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# A plain `apk add nginx` on Alpine only pulls nginx + pcre — the prebuilt
+# nginx-unprivileged image bundles optional modules (image_filter, xslt,
+# geoip, ...) statically, dragging in libpng/libxml2/freetype/openssl and
+# the CVEs that come with them, none of which this static file server uses.
+# The nginx package already creates an unprivileged "nginx" system user
+# with the right ownership on its runtime directories, so we reuse it
+# rather than adding our own.
+FROM alpine:3.21
+RUN apk add --no-cache nginx
 
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/http.d/default.conf
+
+USER nginx
 EXPOSE 8080
 HEALTHCHECK --interval=10s --timeout=3s --retries=3 \
   CMD wget --quiet --tries=1 --spider http://localhost:8080/ || exit 1
+
+CMD ["nginx", "-g", "daemon off;"]

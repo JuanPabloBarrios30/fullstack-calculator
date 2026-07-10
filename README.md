@@ -254,9 +254,20 @@ healthchecks).
   is a multi-stage build — compiled in `golang:alpine`, copied into a plain
   `alpine` runtime with its own unprivileged user (no shell utilities beyond
   what the healthcheck needs). The frontend is built with Vite in a `node`
-  stage and served by `nginxinc/nginx-unprivileged`, which never runs as
-  root at all rather than dropping privileges after start. Neither image
-  ships build tooling or source maps of the toolchain.
+  stage and served by nginx installed with a plain `apk add nginx` on
+  `alpine`, running as the unprivileged `nginx` system user the package
+  already creates. Neither image ships build tooling or source maps of the
+  toolchain.
+
+- **The frontend didn't start out this way — a vulnerability scan changed
+  it.** It first shipped on the prebuilt `nginxinc/nginx-unprivileged` image,
+  which scanned at 4 critical and 26 high-severity CVEs, all from optional
+  nginx modules (`image_filter`, `xslt`, `geoip`, ...) statically compiled in
+  and dragging in `libpng`/`libxml2`/`freetype`/`openssl` that this static
+  file server never uses. Switching to a bare `alpine` base with nginx
+  installed via `apk` — which does *not* pull those optional modules in —
+  dropped that to 1 high and 1 medium, neither with a fix available yet
+  upstream. Verified with `docker scout cves` before and after.
 
 ## Assumptions
 
