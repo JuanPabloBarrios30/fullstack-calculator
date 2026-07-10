@@ -89,6 +89,43 @@ project.
 Claude replaced an example that read as low-effort and tightened both
 documents to their current form.
 
+## 9. Docker setup
+
+> Now that everything else is working, let's set up Docker — a Dockerfile
+> for each service plus a docker-compose.yml to run them together, following
+> the same practices we've used throughout: non-root users, multi-stage
+> builds, and nothing in the final image beyond what's actually needed at
+> runtime.
+
+Claude built multi-stage Dockerfiles for both services (a compiled Go binary
+on a plain Alpine runtime; a Vite production build served by nginx), wired
+them together with `docker-compose.yml`, and verified the stack by actually
+building and running it rather than just reviewing the config — including a
+real bug it caught and fixed along the way (the frontend's healthcheck was
+failing because its nginx config only listened on IPv4).
+
+## 10. Catching a real vulnerability
+
+After scanning the images myself:
+
+> Can you verify this — the image contains 4 critical and 26 high
+> vulnerabilities? Also explain how to run it and how the app works in
+> Docker.
+
+Claude reproduced the finding with `docker scout cves`, traced all of it to
+one image's base — a prebuilt nginx variant that statically compiles in
+optional modules this static-file server never uses, dragging in vulnerable
+image/XML libraries as a side effect — and rebuilt that image on a minimal
+`alpine` base with a plain `apk add nginx` instead. That cut the count from
+118 (4 critical, 26 high) down to 2, neither with an upstream fix available,
+confirmed with another scan and a full functional retest against the real
+app.
+
+> Increase the healthcheck log interval to 30 seconds.
+
+A small follow-up after trying the containers locally and finding the
+health-check request logged every 10 seconds too noisy for local dev.
+
 ## What I did not do
 
 I did not ask the AI to invent the percentage semantics, the API error
