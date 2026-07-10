@@ -18,7 +18,7 @@ COPY --from=builder /out/api /usr/local/bin/api
 USER app
 
 EXPOSE 8080
-HEALTHCHECK --interval=10s --timeout=3s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
   CMD wget --quiet --tries=1 --spider http://localhost:8080/health || exit 1
 
 ENTRYPOINT ["/usr/local/bin/api"]
