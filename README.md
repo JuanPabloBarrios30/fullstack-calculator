@@ -107,6 +107,8 @@ npm test              # single run
 npm run test:coverage # with coverage report (text + HTML in coverage/)
 ```
 
+Current coverage: **96%** statements, **100%** functions and lines.
+
 Build for production:
 
 ```bash

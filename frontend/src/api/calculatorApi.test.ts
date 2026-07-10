@@ -38,6 +38,21 @@ describe("calculate", () => {
     });
   });
 
+  it("falls back to a generic message when the error response has no parseable body", async () => {
+    mockFetchOnce({
+      ok: false,
+      status: 500,
+      json: async () => {
+        throw new SyntaxError("not JSON");
+      },
+    });
+
+    await expect(calculate({ operation: "add", a: 1, b: 2 })).rejects.toMatchObject({
+      message: "Request failed with status 500",
+      status: 500,
+    });
+  });
+
   it("throws a CalculatorApiError when the network request fails", async () => {
     vi.stubGlobal(
       "fetch",
