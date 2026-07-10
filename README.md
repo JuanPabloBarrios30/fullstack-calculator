@@ -1,5 +1,7 @@
 # Fullstack Calculator
 
+[![Tests](https://github.com/JuanPabloBarrios30/fullstack-calculator/actions/workflows/test.yml/badge.svg)](https://github.com/JuanPabloBarrios30/fullstack-calculator/actions/workflows/test.yml)
+
 A full-stack calculator built as a technical exercise: a Go REST API for the
 arithmetic, and a React + TypeScript frontend that consumes it. The goal was
 clean separation of concerns, solid error handling, and tests that actually
@@ -34,6 +36,7 @@ fullstack-calculator/
       App.tsx            renders the calculator
     Dockerfile           multi-stage build -> non-root nginx image
   docker-compose.yml    runs both services together
+  .github/workflows/    CI: runs backend and frontend tests on every push
 ```
 
 ## Supported operations
@@ -270,6 +273,14 @@ healthchecks).
   installed via `apk` — which does *not* pull those optional modules in —
   dropped that to 1 high and 1 medium, neither with a fix available yet
   upstream. Verified with `docker scout cves` before and after.
+
+- **Tests run in CI, not inside the Dockerfile.** `.github/workflows/test.yml`
+  runs the Go and frontend test suites (plus the production build) on every
+  push and pull request against `main`. Baking `go test`/`npm test` into the
+  Dockerfile itself was deliberately avoided — it would make every image
+  build slower regardless of what changed, and conflates "does the code
+  work" (a fast, separate feedback loop) with "package the already-verified
+  code into a runnable image."
 
 ## Assumptions
 
