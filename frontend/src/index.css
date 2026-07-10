@@ -1,33 +1,42 @@
 :root {
-  --text: #1f2328;
-  --text-muted: #57606a;
-  --bg: #ffffff;
-  --surface: #f6f8fa;
-  --border: #d0d7de;
-  --accent: #6c3ce9;
-  --accent-contrast: #ffffff;
-  --error: #b3261e;
-  --error-bg: #fdecea;
-  --success: #1a7f37;
+  /* Palette sampled from Sezzle's live site and app icon (see PROMPTS.md):
+     vivid purple + deep plum from the site, amber from the logo's ribbon. */
+  --purple: #8333d4;
+  --purple-strong: #6f22bf;
+  --plum: #382757;
+  --void: #1b1530;
+  --amber: #fda524;
+  --paper: #faf9fc;
+  --ink: #1b1530;
+  --ink-soft: #6c6280;
+  --mist: #ece7f5;
+  --key-face: #ffffff;
+  --key-shadow: rgba(56, 39, 87, 0.14);
+  --card-shadow: rgba(56, 39, 87, 0.18);
+  --error: #c73a52;
+  --error-bg: #fbe9ec;
+  --backdrop-a: #f5f1fb;
+  --backdrop-b: #fffdfa;
 
-  font: 16px/1.5 system-ui, "Segoe UI", Roboto, sans-serif;
+  font: 16px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, "Segoe UI", sans-serif;
   color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
+  color: var(--ink);
+  background: var(--paper);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --text: #e6edf3;
-    --text-muted: #9198a1;
-    --bg: #0d1117;
-    --surface: #161b22;
-    --border: #30363d;
-    --accent: #a684ff;
-    --accent-contrast: #0d1117;
-    --error: #ff7b72;
-    --error-bg: #3a1414;
-    --success: #3fb950;
+    --paper: #14101f;
+    --ink: #f3eefc;
+    --ink-soft: #b7abcf;
+    --mist: #251c3a;
+    --key-face: #2c2242;
+    --key-shadow: rgba(0, 0, 0, 0.35);
+    --card-shadow: rgba(0, 0, 0, 0.5);
+    --error: #ff8fa3;
+    --error-bg: #3a1c26;
+    --backdrop-a: #1b1530;
+    --backdrop-b: #100c1c;
   }
 }
 

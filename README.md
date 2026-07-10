@@ -24,9 +24,9 @@ fullstack-calculator/
     src/
       types/            shared Operation type and API contracts
       api/               typed fetch client
-      utils/             client-side validation
-      components/        CalculatorForm
-      App.tsx            state orchestration (idle/loading/success/error)
+      hooks/             useCalculator — chained-calculation state machine
+      components/        Calculator (keypad UI)
+      App.tsx            renders the calculator
 ```
 
 ## Supported operations
@@ -34,6 +34,17 @@ fullstack-calculator/
 Addition, subtraction, multiplication, division, power, square root, and
 percentage. Square root is the only unary operation (it only needs `a`); all
 others require both `a` and `b`.
+
+## The UI
+
+The frontend is a calculator keypad (not a plain "two inputs and a button"
+form): digits and operators, a running expression breadcrumb, and chained
+operations — `9 + 9 + 9 =` accumulates and evaluates left to right, the way a
+physical calculator works. Every one of those steps is a real call to
+`POST /api/v1/calculate`; nothing is computed client-side except formatting.
+The palette (deep purple/plum, with an amber accent on the pending operator
+and the equals button) samples Sezzle's own site and logo colors — see
+[PROMPTS.md](PROMPTS.md) for how those were sourced.
 
 ## Setup & running
 
@@ -183,10 +194,21 @@ healthchecks).
   limiting, HTTPS/TLS termination — this is a stateless calculator with no
   user data, so those would be scope creep for what's being evaluated here.
 
-- **Client-side validation is a convenience, not the source of truth.** The
-  frontend mirrors a subset of the backend's rules (missing operands, divide
-  by zero, negative sqrt) so the user gets instant feedback, but every
-  request is still validated server-side regardless of what the client sent.
+- **Every calculator step is a real API call.** Chaining `9 + 9 + 9 =` fires
+  one `POST /api/v1/calculate` per completed step (each `+`, and the final
+  `=`), accumulating the running total returned by the backend — the frontend
+  never does the arithmetic itself. This keeps the backend as the actual
+  source of truth rather than just the one used for a single initial
+  computation, at the cost of a network round-trip per keystroke-equivalent
+  (acceptable for a calculator; would need debouncing/batching in a
+  higher-throughput UI).
+
+- **The `%` key is a UX convention layered on the backend contract, not a new
+  backend behavior.** With a pending operation (e.g. `200 +`), pressing `%`
+  sends `percentage(a=<entry>, b=<accumulated value>)` — "`a` percent of
+  `b`" — matching how iOS-style calculators resolve `200 + 10% = 220`. With
+  no pending operation there's no second operand to send, so it's a local
+  `/ 100` instead of an API call for that one case.
 
 - **Non-finite results are rejected before they reach JSON.** Go's
   `encoding/json` cannot marshal `NaN`/`Inf`, so an extreme `power` call
